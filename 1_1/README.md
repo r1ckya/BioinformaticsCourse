@@ -32,5 +32,4 @@ from Bio import SeqIO
 ### Теоретическая часть
 1. Перестановки (2 балла)  
 Докажите, что способов получить из одной строки длинны *n* 
-длругую, длинны *m* можно посчитать как 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{2^{n+m}}{\sqrt{\pi m}}">
+длругую, длинны *m* можно посчитать так: <img src="https://render.githubusercontent.com/render/math?math=\frac{2^{n+m}}{\sqrt{\pi m}}">
