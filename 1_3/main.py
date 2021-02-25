@@ -23,7 +23,7 @@ def needleman_wunsch(s, t, del_cost, ins_cost, match_cost, mismatch_cost):
             res[i + 1, j + 1] = max(
                 res[i][j] + score_fn(s[i], t[j]),
                 res[i + 1][j] + ins_cost,
-                res[i][j + 1] + del_cost
+                res[i][j + 1] + del_cost,
             )
     s_ans, t_ans = [], []
     i, j = n - 1, m - 1
@@ -55,10 +55,7 @@ def needleman_wunsch(s, t, del_cost, ins_cost, match_cost, mismatch_cost):
 
 def hirschberg_score(s, t, del_cost, ins_cost, match_cost, mismatch_cost):
     n, m = len(s), len(t)
-    res = np.array([
-        [i * ins_cost for i in range(m + 1)],
-        [0] * (m + 1)
-    ])
+    res = np.array([[i * ins_cost for i in range(m + 1)], [0] * (m + 1)])
     k = 0
     score_fn = scorer(match_cost, mismatch_cost)
     for i in range(n):
@@ -68,44 +65,67 @@ def hirschberg_score(s, t, del_cost, ins_cost, match_cost, mismatch_cost):
             res[k][j + 1] = max(
                 res[k ^ 1][j] + score_fn(s[i], t[j]),
                 res[k][j] + ins_cost,
-                res[k ^ 1][j + 1] + del_cost
+                res[k ^ 1][j + 1] + del_cost,
             )
     return res[k]
 
 
-def hirschberg(s, t, del_cost, ins_cost, match_cost, mismatch_cost,
-               vis=False, depth=0):
+def hirschberg(
+    s, t, del_cost, ins_cost, match_cost, mismatch_cost, vis=False, depth=0
+):
     n, m = len(s), len(t)
     if n < 2 or m < 2:
         if vis:
             print("  " * depth, f"({s}, {t})")
-        return needleman_wunsch(s, t, del_cost, ins_cost, match_cost,
-                                mismatch_cost)
+        return needleman_wunsch(
+            s, t, del_cost, ins_cost, match_cost, mismatch_cost
+        )
     else:
         mid = n // 2
-        score_a = hirschberg_score(s[:mid], t, del_cost, ins_cost,
-                                   match_cost, mismatch_cost)
-        score_b = hirschberg_score(s[mid:][::-1], t[::-1], del_cost, ins_cost,
-                                   match_cost, mismatch_cost)
+        score_a = hirschberg_score(
+            s[:mid], t, del_cost, ins_cost, match_cost, mismatch_cost
+        )
+        score_b = hirschberg_score(
+            s[mid:][::-1],
+            t[::-1],
+            del_cost,
+            ins_cost,
+            match_cost,
+            mismatch_cost,
+        )
         idx = (score_a + score_b[::-1]).argmax()
         del score_a, score_b
-        lhs = hirschberg(s[:mid], t[:idx], del_cost, ins_cost, match_cost,
-                         mismatch_cost, vis, depth + 1)
+        lhs = hirschberg(
+            s[:mid],
+            t[:idx],
+            del_cost,
+            ins_cost,
+            match_cost,
+            mismatch_cost,
+            vis,
+            depth + 1,
+        )
         if vis:
             print("  " * depth, f"({s}, {t})")
-        rhs = hirschberg(s[mid:], t[idx:], del_cost, ins_cost, match_cost,
-                         mismatch_cost, vis, depth + 1)
+        rhs = hirschberg(
+            s[mid:],
+            t[idx:],
+            del_cost,
+            ins_cost,
+            match_cost,
+            mismatch_cost,
+            vis,
+            depth + 1,
+        )
         return [lhs[i] + rhs[i] for i in range(3)]
 
 
 def test(s, t, del_cost, ins_cost, match_cost, mismatch_cost):
-    score, *alignments = hirschberg(s, t, del_cost, ins_cost, match_cost,
-                                    mismatch_cost, vis=False)
+    score, *alignments = hirschberg(
+        s, t, del_cost, ins_cost, match_cost, mismatch_cost, vis=False
+    )
     true_score = align.globalmd(
-        s, t,
-        match_cost, mismatch_cost,
-        ins_cost, ins_cost,
-        del_cost, del_cost
+        s, t, match_cost, mismatch_cost, ins_cost, ins_cost, del_cost, del_cost
     )[0].score
     assert score == true_score, (score, true_score)
 
@@ -136,8 +156,9 @@ def main():
     n = 6
     a = random_dna(2 * n)
     b = random_dna(n)
-    score, *alignments = hirschberg(a, b, del_cost, ins_cost, match_cost,
-                                    mismatch_cost, vis=True)
+    score, *alignments = hirschberg(
+        a, b, del_cost, ins_cost, match_cost, mismatch_cost, vis=True
+    )
     print(*["".join(s) for s in alignments], sep="\n")
     print(score)
 

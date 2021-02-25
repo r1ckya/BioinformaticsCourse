@@ -42,12 +42,15 @@ class AlignmentItem:
         assert self.seqs_length == other.seqs_length
         n1, n2 = len(self.seqs), len(other.seqs)
         nn = n1 + n2
-        self.profile = [(p1 * n1 + p2 * n2) / nn
-                        for p1, p2 in zip(self.profile, other.profile)]
+        self.profile = [
+            (p1 * n1 + p2 * n2) / nn
+            for p1, p2 in zip(self.profile, other.profile)
+        ]
         self.seqs.extend(other.seqs)
         self.idxs.extend(other.idxs)
-        self.consensus = [SymbolsMapping.idx_to_char[p.argmax()] for p in
-                          self.profile]
+        self.consensus = [
+            SymbolsMapping.idx_to_char[p.argmax()] for p in self.profile
+        ]
 
     def reorder_seqs(self):
         seqs = [0] * len(self.idxs)

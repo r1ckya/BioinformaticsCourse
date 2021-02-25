@@ -27,7 +27,7 @@ def hamming_search(s, t):  # search s in t
         if cur < dbest:
             dbest = cur
             ibest = i
-    return ibest, t[ibest:ibest + n], dbest
+    return ibest, t[ibest : ibest + n], dbest
 
 
 def levenshtein_distance(s, t):
@@ -37,10 +37,7 @@ def levenshtein_distance(s, t):
         n, m = m, n
     if n == 0:
         return m
-    dp = [
-        [i for i in range(n + 1)],
-        [0] * (n + 1)
-    ]
+    dp = [[i for i in range(n + 1)], [0] * (n + 1)]
     k = 0
     for i in range(m):
         k ^= 1
@@ -49,7 +46,7 @@ def levenshtein_distance(s, t):
             dp[k][j + 1] = min(
                 dp[k ^ 1][j + 1] + 1,
                 dp[k ^ 1][j] + (0 if t[i] == s[j] else 1),
-                dp[k][j] + 1
+                dp[k][j] + 1,
             )
     return dp[k][n]
 

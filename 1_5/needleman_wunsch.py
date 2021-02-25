@@ -38,8 +38,9 @@ def reverse_alignment(consensus, seqs, profile):
     profile.reverse()
 
 
-def restore_alignment(s_align_profile, t_align_profile, res,
-                      del_cost, ins_cost, score_fn):
+def restore_alignment(
+    s_align_profile, t_align_profile, res, del_cost, ins_cost, score_fn
+):
     s = s_align_profile.consensus
     t = t_align_profile.consensus
     n, m = len(s), len(t)
@@ -80,15 +81,18 @@ def restore_alignment(s_align_profile, t_align_profile, res,
     s_idxs = s_align_profile.idxs.copy()
     t_idxs = t_align_profile.idxs.copy()
     new_alignment = AlignmentItem(s_seqs, s_idxs, s_profile, s_consensus)
-    new_alignment.merge(
-        AlignmentItem(t_seqs, t_idxs, t_profile, t_consensus)
-    )
+    new_alignment.merge(AlignmentItem(t_seqs, t_idxs, t_profile, t_consensus))
     return new_alignment
 
 
-def needleman_wunsch(s_align_profile, t_align_profile,
-                     del_cost, ins_cost,
-                     match_cost, mismatch_cost):
+def needleman_wunsch(
+    s_align_profile,
+    t_align_profile,
+    del_cost,
+    ins_cost,
+    match_cost,
+    mismatch_cost,
+):
     s = s_align_profile.consensus
     t = t_align_profile.consensus
     score_fn = scorer(del_cost, ins_cost, match_cost, mismatch_cost)
@@ -103,17 +107,23 @@ def needleman_wunsch(s_align_profile, t_align_profile,
             res[i + 1, j + 1] = max(
                 res[i][j] + score_fn(s[i], t[j]),
                 res[i + 1][j] + ins_cost,
-                res[i][j + 1] + del_cost
+                res[i][j + 1] + del_cost,
             )
 
-    new_alignment = restore_alignment(s_align_profile, t_align_profile,
-                                      res, del_cost, ins_cost, score_fn)
+    new_alignment = restore_alignment(
+        s_align_profile, t_align_profile, res, del_cost, ins_cost, score_fn
+    )
     return res[n][m], new_alignment
 
 
-def needleman_wunsch_score_only(s_align_profile, t_align_profile,
-                                del_cost, ins_cost,
-                                match_cost, mismatch_cost):
+def needleman_wunsch_score_only(
+    s_align_profile,
+    t_align_profile,
+    del_cost,
+    ins_cost,
+    match_cost,
+    mismatch_cost,
+):
     s = s_align_profile.consensus
     t = t_align_profile.consensus
     score_fn = scorer(del_cost, ins_cost, match_cost, mismatch_cost)
@@ -134,7 +144,7 @@ def needleman_wunsch_score_only(s_align_profile, t_align_profile,
             res[k, j + 1] = max(
                 res[k ^ 1][j] + score_fn(s[i], t[j]),
                 res[k][j] + ins_cost,
-                res[k ^ 1][j + 1] + del_cost
+                res[k ^ 1][j + 1] + del_cost,
             )
 
     return res[k][m]

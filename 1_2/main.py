@@ -20,7 +20,7 @@ def needleman_wunsch(s, t, cost_matrix, gap_cost=-1):
             res[i + 1, j + 1] = max(
                 res[i][j] + cost_matrix[(s[i], t[j])],
                 res[i + 1][j] + gap_cost,
-                res[i][j + 1] + gap_cost
+                res[i][j + 1] + gap_cost,
             )
     s_ans, t_ans = [], []
     i, j = n - 1, m - 1
@@ -72,12 +72,12 @@ def affine_gap_alignment(s, t, cost_matrix, alpha, beta):
             resA[i + 1, j + 1] = max(
                 resM[i + 1, j] + alpha + beta,
                 resA[i + 1, j] + beta,
-                resB[i + 1, j] + alpha + beta
+                resB[i + 1, j] + alpha + beta,
             )
             resB[i + 1, j + 1] = max(
                 resM[i, j + 1] + alpha + beta,
                 resA[i, j + 1] + alpha + beta,
-                resB[i, j + 1] + beta
+                resB[i, j + 1] + beta,
             )
             resM[i + 1, j + 1] = cost_matrix[(s[i], t[j])] + max(
                 resM[i, j], resA[i, j], resB[i, j]

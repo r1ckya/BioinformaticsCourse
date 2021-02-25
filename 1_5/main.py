@@ -7,8 +7,9 @@ def print_alignment(alignment):
 
 
 def test(seqs, del_cost, ins_cost, match_cost, mismatch_cost):
-    score, alignment = multiple_sequence_alignment(seqs, del_cost, ins_cost,
-                                                   match_cost, mismatch_cost)
+    score, alignment = multiple_sequence_alignment(
+        seqs, del_cost, ins_cost, match_cost, mismatch_cost
+    )
     print("-" * 50)
     print(score)
     print_alignment(alignment)
