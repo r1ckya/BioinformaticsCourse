@@ -1,7 +1,6 @@
 import sys
 
 import numpy as np
-from numpy.core.numeric import Infinity
 
 input = sys.stdin.readline
 

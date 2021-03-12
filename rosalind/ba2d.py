@@ -3,6 +3,7 @@ from enum import Enum
 
 import numpy as np
 from frozendict import frozendict
+from numpy.core.numeric import Infinity
 
 input = sys.stdin.readline
 
@@ -51,7 +52,7 @@ def score(profile):
 
 
 def greedy_motif_search(dna, k):
-    best_score = float("inf")
+    best_score = Infinity
     best_motifs = []
     for start_motif in window(dna[0], k):
         profile = np.zeros((k, len(Symbols)), dtype=int)

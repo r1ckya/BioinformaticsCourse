@@ -25,7 +25,7 @@ def viterbi(x, pi_states, transition_matrix, emission_matrix):
 
     for i in range(1, n):
         for j, cur_state in enumerate(pi_states):
-            dp[i][j] = float("-inf")
+            dp[i][j] = -Infinity
             for k, prev_state in enumerate(pi_states):
                 dp[i][j] = max(
                     dp[i][j],
