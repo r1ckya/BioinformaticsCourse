@@ -1,0 +1,18 @@
+generating reads...
+mean_error_rate: 0.05298792668068185
+------------------------------------------------------------
+running trimmomatic...
+tp_ratio: 0.05458098559977446
+fp_ratio: 0.9454190144002256
+validated: 908
+trimmed: 32575
+removed: 16517
+------------------------------------------------------------
+running quake...
+3775038 trusted kmers
+AT% = 0.500898
+reads.fastq
+correct_corrections: 9374
+wrong_nt_corrections: 187
+wrong_pos_corrections: 923
+------------------------------------------------------------
