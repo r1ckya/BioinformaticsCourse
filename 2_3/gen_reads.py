@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 
 import numpy as np
@@ -40,13 +41,12 @@ def main():
     with open("dna.txt", "w") as f:
         print(dna, file=f)
 
-    with open("reads.fastq", "w") as f:
-        for i in range(n_reads):
-            read = random_read(dna, read_len)
-            print(f"@{i}", file=f)
-            print(read, file=f)
-            print("+", file=f)
-            print("I" * read_len, file=f)
+    for i in range(n_reads):
+        read = random_read(dna, read_len)
+        print(f"@{i}", file=sys.stdout)
+        print(read, file=sys.stdout)
+        print("+", file=sys.stdout)
+        print("I" * read_len, file=sys.stdout)
 
         # for read in full_coverage(dna, read_len):
         #     print(f"@{i}", file=f)

@@ -1,7 +1,13 @@
 import sys
+from collections import deque
+from copy import deepcopy
 from dataclasses import dataclass
+from os.path import join
 
+import numpy as np
 from Bio import SeqIO
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 
 def window(s, n):
@@ -48,6 +54,11 @@ class Edges:
         if len(ud) == 0:
             vd.pop(u)
 
+    def remove_all_s(self, v, u):
+        vd = self.edges[v]
+        if u in vd:
+            self.adjust_deg(v, u, -len(vd.pop(u)))
+
     def adjust_deg(self, v, u, d):
         self.deg_out[v] += d
         self.deg_in[u] += d
@@ -62,6 +73,36 @@ class Edges:
 
     def __len__(self):
         return len(self.edges)
+
+    def is_empty(self, v):
+        return self.deg_in[v] == 0 and self.deg_out[v] == 0
+
+    def remove_empty_vertexes(self):
+        old_n_vertex = len(self.edges)
+        old_edges = deepcopy(self.edges)
+
+        delta = np.cumsum(
+            [0] + [self.is_empty(v) for v in range(old_n_vertex)]
+        )
+
+        self.edges = []
+        self.deg_in = []
+        self.deg_out = []
+
+        for _ in range(old_n_vertex - delta[-1]):
+            self.add_vertex()
+
+        for v in range(old_n_vertex):
+            if delta[v + 1] - delta[v] == 0:
+                for u, sd in old_edges[v].items():
+                    for s, info in sd.items():
+                        self.put(
+                            v - delta[v + 1],
+                            u - delta[u + 1],
+                            s,
+                            info.coverage,
+                        )
+        print(f"removed {delta[-1]} empty nodes", file=sys.stderr)
 
 
 class DeBrujinGraph:
@@ -118,18 +159,64 @@ class DeBrujinGraph:
             for u in tuple(self.edges[v].keys()):
                 compressed += self.compress_edge(v, u)
 
+        self.edges.remove_empty_vertexes()
         print(f"compressed total of {compressed} nodes", file=sys.stderr)
 
 
-def main():
-    k = int(sys.argv[1])
-    dbg = DeBrujinGraph(k)
+def remove_tails(dbg, remove_percentage=0.3):
+    n_vertex = len(dbg.edges)
+    scores = []
 
-    for record in SeqIO.parse("reads.fastq", "fastq"):
-        dbg.add_read(record.seq)
+    for v in range(n_vertex):
+        if dbg.edges.deg_in[v] > 0:
+            for u, sd in dbg.edges[v].items():
+                if dbg.edges.deg_in[u] == 1 and dbg.edges.deg_out[u] == 0:
+                    ((s, info),) = sd.items()
+                    scores.append((len(s) * info.coverage, v, u))
+
+    scores.sort()
+    print(len(scores))
+
+    cut_idx = np.ceil(remove_percentage * len(scores)).astype(int)
+    for _, v, u in scores[:cut_idx]:
+        dbg.edges.remove_all_s(v, u)
 
     dbg.compress()
 
+
+def is_connected(dbg, v, u):
+    used = [False] * len(dbg.edges)
+    queue = deque()
+    used[v] = True
+
+    while queue:
+        v = queue.popleft()
+        for to in dbg.edges[v]:
+            if not used[to]:
+                queue.append(to)
+                used[to] = True
+        if used[u]:
+            return True
+
+    return used[u]
+
+
+def remove_bubbles(dbg):
+    b = 0
+    n_vertex = len(dbg.edges)
+    for v in range(n_vertex):
+        for u, sd in tuple(dbg.edges[v].items()):
+            for s, info in tuple(sd.items()):
+                if len(s) <= 2 * dbg.k:
+                    dbg.edges.remove(v, u, s)
+                    if not is_connected(dbg, v, u):
+                        dbg.edges.put(v, u, s, info.coverage)
+                    else:
+                        b += 1
+    dbg.compress()
+
+
+def test(dbg):
     alls = []
     for v in range(len(dbg.edges)):
         for u, du in dbg.edges[v].items():
@@ -148,6 +235,53 @@ def main():
         print("assembly successful!")
     else:
         print("assembly failed!")
+
+
+def plot_dbg(dbg, out_dir):
+    scores = []
+    n_vertex = len(dbg.edges)
+    for v in range(n_vertex):
+        for sd in dbg.edges[v].values():
+            for info in sd.values():
+                scores.append(info.coverage)
+
+    with open(join(out_dir, "stats.txt"), "w") as f:
+        print(f"number of nodes {len(dbg.edges)}", file=f)
+        print(f"number of edges {len(scores)}", file=f)
+
+    plt.hist(scores, range=[0, max(scores) + 1])
+    plt.title("coverage distribution")
+    plt.savefig(join(out_dir, "coverage.png"))
+    plt.close()
+
+    plt.hist(dbg.edges.deg_in)
+    plt.title("deg in")
+    plt.savefig(join(out_dir, "deg_in.png"))
+    plt.close()
+
+    plt.hist(dbg.edges.deg_out)
+    plt.title("deg out")
+    plt.savefig(join(out_dir, "deg_out.png"))
+    plt.close()
+
+
+def main():
+    k = int(sys.argv[1])
+    dbg = DeBrujinGraph(k)
+
+    for record in tqdm(SeqIO.parse(sys.stdin, "fastq")):
+        dbg.add_read(record.seq)
+
+    plot_dbg(dbg, "original")
+
+    dbg.compress()
+    plot_dbg(dbg, "compressed")
+
+    remove_tails(dbg)
+    plot_dbg(dbg, "wo_tails")
+
+    remove_bubbles(dbg)
+    plot_dbg(dbg, "wo_bubbles")
 
 
 if __name__ == "__main__":
